@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Daily route trips extracted from GPS tracking CSV exports.
+// Wall-clock times from the CSV are stored as UTC-based dates so the
+// displayed time always matches exactly what the tracking system shows.
+model Trip {
+  id            String   @id @default(cuid())
+  vehicleName   String
+  tripDate      DateTime // UTC midnight of the trip start day
+  startTime     DateTime
+  endTime       DateTime
+  startLocation String
+  endLocation   String
+  distanceKm    Float
+  maxSpeed      Float    @default(0)
+  avgSpeed      Float    @default(0)
+  durationMin   Int      @default(0)
+  sourceFile    String?
+  createdAt     DateTime @default(now())
+
+  @@index([tripDate])
+  @@index([vehicleName])
+  @@index([vehicleName, tripDate])
+}
+
+// Financial revenue / expense entries for the profit calculator.
+model FinancialEntry {
+  id          String   @id @default(cuid())
+  type        String // "REVENUE" | "EXPENSE"
+  category    String // TRIP_RENT | FREIGHT | OTHER_INCOME | DIESEL | DRIVER_PAY | CHALLAN | TOLL | MAINTENANCE | OTHER
+  amount      Float
+  description String?
+  vehicleName String?
+  entryDate   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([entryDate])
+  @@index([type])
+}
+
+// Manager "Hisab Kitab" ledger entries (credit = due added, payment = cleared).
+model LedgerEntry {
+  id          String   @id @default(cuid())
+  type        String // "CREDIT" | "PAYMENT"
+  amount      Float
+  description String?
+  entryDate   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([entryDate])
+}
