@@ -24,3 +24,24 @@ Stage Summary:
 - App fully working at / (single route). Demo pre-seeded: 203 trips, 208 finance entries, 4 ledger entries, pending dues ₹1,20,000 (130,000 opening + 42,000 credit − 52,000 cleared)
 - Lint clean; browser-verified interactivity on all 4 views, desktop + mobile
 - Deliverable docs: README.md with full setup + API instructions
+
+---
+Task ID: 2
+Agent: Super Z (main agent)
+Task: Change currency to PKR app-wide + add full manual Quick Calculator to the Profit Calculator (finance) view
+
+Work Log:
+- format.ts: replaced fmtINR/fmtINRCompact with fmtPKR (Intl en-PK, currency PKR, narrowSymbol -> "Rs 130,000") and fmtPKRCompact ("Rs 47.7K"/"Rs 2.70L"); fmtKm/fmtNum moved en-IN -> en-PK
+- Renamed all usages across dashboard-view, finance-view, fleet-app, ledger-view (sidebar dues, stat cards, charts, tables, toasts)
+- Swapped INR-only lucide icons (no Pakistani rupee icon in this lucide version): IndianRupee->Banknote (dashboard net profit), ReceiptIndianRupee->Receipt (trip rent badge), BadgeIndianRupee->Landmark (ledger add-due toggle)
+- Labels "Amount (₹)" -> "Amount (Rs)" in finance + ledger forms; chart Y-axis strips "Rs " via /Rs\.?\s*/g
+- README.md + demo-data.ts comments updated from ₹/INR to Rs/PKR
+- NEW src/components/fleet/calculator.tsx: full calculator — digits, + − × ÷ % ± AC ⌫, memory MC/MR/M+/M− with M badge, expression line, clickable history tape (last 5, recall on click), divide-by-zero error state, keyboard support (digits, ops, Enter, Backspace, Esc, %), "Use as Amount — Rs X" push button (whole numbers 0 dp, fractions 2 dp)
+- finance-view: QuickCalculator integrated below Add Entry form in left column; handleCalcUse fills amount field + success toast
+- Verified via agent-browser: PKR everywhere (Rs 47,700 revenue, Rs 120,000 dues, Rs 2.70L footer), 4500+3200=7700 pushed into amount field (input value "7700" + toast), 70÷4=17.50 decimals, 777+70%=1320.9 percent-of-accumulator, M+/AC/MR recall, history tape render
+- Note for future testing: agent-browser @refs shift when history tape appears (DOM changes); use fresh snapshots or eval-based clicks in separate tasks
+
+Stage Summary:
+- Currency is now PKR (Rs) across dashboard, trips, finance, ledger, charts, sidebar, footer
+- Full manual calculator live in Profit Calculator view with all operators, memory, history, keyboard input, one-tap "Use as Amount"
+- Lint clean, dev.log clean, HTTP 200, browser-verified end-to-end

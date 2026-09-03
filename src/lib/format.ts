@@ -3,30 +3,31 @@
    UTC-based Dates (see trip-parser). They must always be rendered using the
    UTC getters so users see exactly the time their tracking system logged. */
 
-export function fmtINR(n: number, decimals = 0): string {
-  return new Intl.NumberFormat("en-IN", {
+export function fmtPKR(n: number, decimals = 0): string {
+  return new Intl.NumberFormat("en-PK", {
     style: "currency",
-    currency: "INR",
+    currency: "PKR",
+    currencyDisplay: "narrowSymbol",
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(n);
 }
 
-export function fmtINRCompact(n: number): string {
+export function fmtPKRCompact(n: number): string {
   const abs = Math.abs(n);
   const sign = n < 0 ? "-" : "";
-  if (abs >= 1e7) return `${sign}₹${(abs / 1e7).toFixed(2)}Cr`;
-  if (abs >= 1e5) return `${sign}₹${(abs / 1e5).toFixed(2)}L`;
-  if (abs >= 1e3) return `${sign}₹${(abs / 1e3).toFixed(1)}K`;
-  return `${sign}₹${abs.toFixed(0)}`;
+  if (abs >= 1e7) return `${sign}Rs ${(abs / 1e7).toFixed(2)}Cr`;
+  if (abs >= 1e5) return `${sign}Rs ${(abs / 1e5).toFixed(2)}L`;
+  if (abs >= 1e3) return `${sign}Rs ${(abs / 1e3).toFixed(1)}K`;
+  return `${sign}Rs ${abs.toFixed(0)}`;
 }
 
 export function fmtKm(n: number, decimals = 1): string {
-  return `${n.toLocaleString("en-IN", { maximumFractionDigits: decimals })} km`;
+  return `${n.toLocaleString("en-PK", { maximumFractionDigits: decimals })} km`;
 }
 
 export function fmtNum(n: number, decimals = 1): string {
-  return n.toLocaleString("en-IN", { maximumFractionDigits: decimals });
+  return n.toLocaleString("en-PK", { maximumFractionDigits: decimals });
 }
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];

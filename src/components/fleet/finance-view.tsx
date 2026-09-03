@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown, Scale, Loader2, Trash2, Plus, Fuel, UserRound, Gavel, Landmark, Wrench, ReceiptIndianRupee } from "lucide-react";
+import { TrendingUp, TrendingDown, Scale, Loader2, Trash2, Plus, Fuel, UserRound, Gavel, Landmark, Wrench, Receipt } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,8 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { FINANCE_CATEGORIES, type FinanceCategory, type FinanceEntryDTO, type FinanceType } from "@/lib/fleet-types";
-import { fmtINR, fmtDate, currentMonthKey, fmtMonth, fmtINRCompact } from "@/lib/format";
+import { fmtPKR, fmtDate, currentMonthKey, fmtMonth, fmtPKRCompact } from "@/lib/format";
 import { StatCard, SectionCard, CategoryBadge, EmptyState, api, stagger } from "./ui-bits";
+import QuickCalculator from "./calculator";
 import { cn } from "@/lib/utils";
 
 interface FinanceResponse {
@@ -23,7 +24,7 @@ interface FinanceResponse {
 }
 
 const CATEGORY_ICONS: Partial<Record<FinanceCategory, React.ElementType>> = {
-  DIESEL: Fuel, DRIVER_PAY: UserRound, CHALLAN: Gavel, MAINTENANCE: Wrench, TRIP_RENT: ReceiptIndianRupee, OTHER: Landmark,
+  DIESEL: Fuel, DRIVER_PAY: UserRound, CHALLAN: Gavel, MAINTENANCE: Wrench, TRIP_RENT: Receipt, OTHER: Landmark,
 };
 
 const CATEGORY_KEYS = Object.keys(FINANCE_CATEGORIES) as FinanceCategory[];
@@ -77,7 +78,7 @@ export default function FinanceView({ refreshKey, onChanged }: { refreshKey: num
         method: "POST",
         body: JSON.stringify({ type: fType, category: fCategory, amount, entryDate: fDate, vehicleName: fVehicle, description: fDesc }),
       });
-      toast.success(`${FINANCE_CATEGORIES[fCategory].label} — ${fmtINR(amount)} recorded`);
+      toast.success(`${FINANCE_CATEGORIES[fCategory].label} — ${fmtPKR(amount)} recorded`);
       setFAmount(""); setFDesc("");
       onChanged();
     } catch (e) {
@@ -97,6 +98,11 @@ export default function FinanceView({ refreshKey, onChanged }: { refreshKey: num
     }
   };
 
+  const handleCalcUse = (v: number) => {
+    setFAmount(String(v));
+    toast.success(`Amount set — ${fmtPKR(v, Number.isInteger(v) ? 0 : 2)}`);
+  };
+
   const t = data?.totals;
   const profitPositive = (t?.net ?? 0) >= 0;
   const margin = t && t.revenue > 0 ? Math.round((t.net / t.revenue) * 100) : 0;
@@ -107,8 +113,8 @@ export default function FinanceView({ refreshKey, onChanged }: { refreshKey: num
     <div className="space-y-4">
       {/* Totals */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Total Revenue" value={fmtINR(t?.revenue || 0)} sub="trip rent + income" icon={TrendingUp} iconClass="bg-emerald-100 text-emerald-600" valueClass="text-emerald-700" delay={0} />
-        <StatCard label="Total Expenses" value={fmtINR(t?.expenses || 0)} sub="diesel + pay + challans" icon={TrendingDown} iconClass="bg-rose-100 text-rose-600" valueClass="text-rose-600" delay={1} />
+        <StatCard label="Total Revenue" value={fmtPKR(t?.revenue || 0)} sub="trip rent + income" icon={TrendingUp} iconClass="bg-emerald-100 text-emerald-600" valueClass="text-emerald-700" delay={0} />
+        <StatCard label="Total Expenses" value={fmtPKR(t?.expenses || 0)} sub="diesel + pay + challans" icon={TrendingDown} iconClass="bg-rose-100 text-rose-600" valueClass="text-rose-600" delay={1} />
         <motion.div {...stagger(2)} className={cn(
           "relative overflow-hidden rounded-2xl p-5 shadow-sm transition-all",
           profitPositive
@@ -120,10 +126,10 @@ export default function FinanceView({ refreshKey, onChanged }: { refreshKey: num
             <div>
               <p className="text-[13px] font-medium text-white/70">Net Profit / Loss</p>
               <p className="mt-1.5 text-[28px] font-bold leading-tight tracking-tight text-white tabular-nums">
-                {fmtINR(t?.net || 0)}
+                {fmtPKR(t?.net || 0)}
               </p>
               <p className="mt-1 text-xs text-white/60">
-                {t && t.revenue > 0 ? `${margin >= 0 ? "+" : ""}${margin}% margin on ${fmtINRCompact(t.revenue)} revenue` : "Auto-computed: revenue − expenses"}
+                {t && t.revenue > 0 ? `${margin >= 0 ? "+" : ""}${margin}% margin on ${fmtPKRCompact(t.revenue)} revenue` : "Auto-computed: revenue − expenses"}
               </p>
             </div>
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white">
@@ -135,7 +141,8 @@ export default function FinanceView({ refreshKey, onChanged }: { refreshKey: num
 
       <div className="grid gap-4 lg:grid-cols-5">
         {/* Add entry form */}
-        <motion.div {...stagger(3)} className="min-w-0 rounded-2xl border border-slate-200/70 bg-white shadow-sm lg:col-span-2 h-fit">
+        <motion.div {...stagger(3)} className="min-w-0 space-y-4 lg:col-span-2">
+          <div className="h-fit rounded-2xl border border-slate-200/70 bg-white shadow-sm">
           <div className="border-b border-slate-100 px-5 py-4">
             <h3 className="text-[15px] font-semibold text-slate-800">Add Entry</h3>
             <p className="mt-0.5 text-xs text-slate-400">Profit recalculates instantly</p>
@@ -170,7 +177,7 @@ export default function FinanceView({ refreshKey, onChanged }: { refreshKey: num
                 </Select>
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <Label className="text-xs font-medium text-slate-600">Amount (₹)</Label>
+                <Label className="text-xs font-medium text-slate-600">Amount (Rs)</Label>
                 <Input type="number" min="0" placeholder="e.g. 4500" value={fAmount} onChange={(e) => setFAmount(e.target.value)}
                   className="mt-1.5 h-10 text-sm" />
               </div>
@@ -193,7 +200,7 @@ export default function FinanceView({ refreshKey, onChanged }: { refreshKey: num
               {quickChips.map((q) => (
                 <button key={q} onClick={() => setFAmount(String(q))}
                   className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-500 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700">
-                  {fmtINRCompact(q)}
+                  {fmtPKRCompact(q)}
                 </button>
               ))}
             </div>
@@ -204,6 +211,9 @@ export default function FinanceView({ refreshKey, onChanged }: { refreshKey: num
               {fType === "REVENUE" ? "Add Revenue" : "Add Expense"}
             </Button>
           </div>
+          </div>
+
+          <QuickCalculator onUse={handleCalcUse} />
         </motion.div>
 
         {/* Entries */}
@@ -233,7 +243,7 @@ export default function FinanceView({ refreshKey, onChanged }: { refreshKey: num
                 {data.byCategory.map((c) => (
                   <span key={c.category} className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-600 ring-1 ring-slate-200/70">
                     <CategoryBadge category={c.category} />
-                    <b className="tabular-nums">{fmtINRCompact(c.amount)}</b>
+                    <b className="tabular-nums">{fmtPKRCompact(c.amount)}</b>
                   </span>
                 ))}
               </div>
@@ -273,7 +283,7 @@ export default function FinanceView({ refreshKey, onChanged }: { refreshKey: num
                           </TableCell>
                           <TableCell className={cn("whitespace-nowrap text-right text-[13px] font-bold tabular-nums",
                             e.type === "REVENUE" ? "text-emerald-600" : "text-rose-600")}>
-                            {e.type === "REVENUE" ? "+" : "−"}{fmtINR(e.amount)}
+                            {e.type === "REVENUE" ? "+" : "−"}{fmtPKR(e.amount)}
                           </TableCell>
                           <TableCell>
                             <AlertDialog>
@@ -285,7 +295,7 @@ export default function FinanceView({ refreshKey, onChanged }: { refreshKey: num
                               <AlertDialogContent>
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Remove this entry?</AlertDialogTitle>
-                                  <AlertDialogDescription>{FINANCE_CATEGORIES[e.category]?.label} — {fmtINR(e.amount)}. This cannot be undone.</AlertDialogDescription>
+                                  <AlertDialogDescription>{FINANCE_CATEGORIES[e.category]?.label} — {fmtPKR(e.amount)}. This cannot be undone.</AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancel</AlertDialogCancel>

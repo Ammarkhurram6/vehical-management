@@ -23,7 +23,7 @@ A production-ready full-stack web application for fleet operators: parse GPS tra
 - **Net profit auto-computes live** — revenue − expenses, with profit margin %, category breakdown chips and a Revenue-vs-Expenses 6-month chart.
 
 ### 3. Manager "Hisab Kitab" Ledger (Saqib)
-- Dedicated ledger for vehicle manager **Saqib** with a tracked opening balance of **₹1,30,000** (seeded with demo data; fully editable).
+- Dedicated ledger for vehicle manager **Saqib** with a tracked opening balance of **Rs 130,000** (seeded with demo data; fully editable).
 - **Real-time balance tracking**: record *Credits* (dues added) and *Payments* (clearing) — the pending balance, settled % progress bar and running balance in history update instantly across the whole app (sidebar widget included).
 
 ### 4. Dashboard & UX
@@ -68,7 +68,7 @@ bun run dev        # or: npm run dev  →  http://localhost:3000
 
 **Production build:** `bun run build && bun run start`
 
-The app boots with an empty database and shows a welcome screen with a **Load demo data** button (35 days of realistic GPS trips for 3 vehicles, finance entries, and Saqib's ledger with the ₹1,30,000 opening balance). Use **Reset** in the header to wipe everything anytime.
+The app boots with an empty database and shows a welcome screen with a **Load demo data** button (35 days of realistic GPS trips for 3 vehicles, finance entries, and Saqib's ledger with the Rs 130,000 opening balance). Use **Reset** in the header to wipe everything anytime.
 
 ---
 
@@ -139,7 +139,7 @@ src/
     ├── trip-parser.ts        # CSV → trips engine (pure, unit-testable)
     ├── demo-data.ts          # Realistic 35-day fleet simulator
     ├── fleet-types.ts        # Shared client/server types + category config
-    ├── format.ts             # INR/date formatters (wall-clock safe)
+    ├── format.ts             # PKR/date formatters (wall-clock safe)
     └── fleet-utils.ts        # fetch helper + cn()
 prisma/schema.prisma          # Trip / FinancialEntry / LedgerEntry models
 public/sample-trips.csv       # Sample GPS export for testing uploads
@@ -149,5 +149,5 @@ public/sample-trips.csv       # Sample GPS export for testing uploads
 
 - **Trip**: Ignition ON → OFF, per vehicle. Distance from odometer delta (Haversine fallback). Idle flickers (<0.1 km & <2 min) dropped.
 - **Net Profit** = Σ(Revenue) − Σ(Expenses). Categories keep revenue and expense ledgers separate.
-- **Pending Dues** = Σ(Credits) − Σ(Payments) in the manager ledger; the demo seed tracks ₹1,30,000 as opening balance per the operator's books.
+- **Pending Dues** = Σ(Credits) − Σ(Payments) in the manager ledger; the demo seed tracks Rs 130,000 as opening balance per the operator's books.
 - All times render exactly as the tracking system logged them (wall-clock preserved, timezone-safe).

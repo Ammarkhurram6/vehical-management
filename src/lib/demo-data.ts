@@ -154,7 +154,7 @@ export async function generateDemoData(userTzOffsetMinutes: number = 0) {
         vehicleName: d.vehicleName, entryDate: d.startTime,
       });
     }
-    // Diesel: ~4.2 km/L @ ~₹89/L
+    // Diesel: ~4.2 km/L @ ~Rs 89/L
     finance.push({
       type: "EXPENSE", category: "DIESEL",
       amount: Math.round((km / 4.2) * 89),
@@ -198,7 +198,7 @@ export async function generateDemoData(userTzOffsetMinutes: number = 0) {
 
   await db.financialEntry.createMany({ data: finance });
 
-  /* Manager ledger — opening balance ₹130,000 as specified, then some clearing */
+  /* Manager ledger — opening balance Rs 130,000 as specified, then some clearing */
   const ledger = [
     {
       type: "CREDIT", amount: OPENING_BALANCE,

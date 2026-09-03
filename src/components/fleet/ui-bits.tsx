@@ -157,7 +157,7 @@ export function ChartTooltip({ active, payload, label, formatter }: {
               {p.name}
             </span>
             <span className="font-semibold tabular-nums text-slate-800">
-              {formatter ? formatter(p.value ?? 0, String(p.dataKey)) : (p.value ?? 0).toLocaleString("en-IN")}
+              {formatter ? formatter(p.value ?? 0, String(p.dataKey)) : (p.value ?? 0).toLocaleString("en-PK")}
             </span>
           </div>
         ))}

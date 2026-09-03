@@ -7,12 +7,12 @@ import {
   BarChart, Bar,
 } from "recharts";
 import {
-  Route, IndianRupee, Navigation, Wallet, ArrowRight, MapPin,
+  Route, Banknote, Navigation, Wallet, ArrowRight, MapPin,
   Sparkles, Upload, RefreshCw,
 } from "lucide-react";
 import type { DashboardData } from "@/lib/fleet-types";
 import { FINANCE_CATEGORIES } from "@/lib/fleet-types";
-import { fmtINR, fmtINRCompact, fmtNum, fmtDateTime } from "@/lib/format";
+import { fmtPKR, fmtPKRCompact, fmtNum, fmtDateTime } from "@/lib/format";
 import { StatCard, SectionCard, SkeletonCard, ChartTooltip, EmptyState, api, stagger } from "./ui-bits";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -104,12 +104,12 @@ export default function DashboardView({ refreshKey, onNavigate, onChanged }: Pro
       {/* Stat cards */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Total Fleet Distance" value={fmtNum(t.distanceKm) + " km"} sub={`${t.trips} trips recorded`} icon={Route} iconClass="bg-emerald-100 text-emerald-600" delay={0} />
-        <StatCard label="Net Profit" value={fmtINR(t.netProfit)} sub={`Rev ${fmtINRCompact(t.revenue)} • Exp ${fmtINRCompact(t.expenses)}`} icon={IndianRupee}
+        <StatCard label="Net Profit" value={fmtPKR(t.netProfit)} sub={`Rev ${fmtPKRCompact(t.revenue)} • Exp ${fmtPKRCompact(t.expenses)}`} icon={Banknote}
           iconClass={profitPositive ? "bg-emerald-100 text-emerald-600" : "bg-rose-100 text-rose-600"}
           valueClass={profitPositive ? "text-emerald-700" : "text-rose-600"} delay={1}
           onClick={() => onNavigate("finance")} />
         <StatCard label="Trips Today" value={String(data.tripsToday)} sub={data.vehiclesToday > 0 ? `${data.vehiclesToday} vehicle(s) on road` : "No movement logged yet"} icon={Navigation} iconClass="bg-amber-100 text-amber-600" delay={2} />
-        <StatCard label="Pending Manager Dues" value={fmtINR(t.pendingDues)} sub="Saqib — hisab kitab" icon={Wallet} iconClass="bg-orange-100 text-orange-600" valueClass={t.pendingDues > 0 ? "text-orange-600" : "text-emerald-700"} delay={3} onClick={() => onNavigate("ledger")} />
+        <StatCard label="Pending Manager Dues" value={fmtPKR(t.pendingDues)} sub="Saqib — hisab kitab" icon={Wallet} iconClass="bg-orange-100 text-orange-600" valueClass={t.pendingDues > 0 ? "text-orange-600" : "text-emerald-700"} delay={3} onClick={() => onNavigate("ledger")} />
       </div>
 
       {/* Charts row */}
@@ -147,7 +147,7 @@ export default function DashboardView({ refreshKey, onNavigate, onChanged }: Pro
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2 text-[13px]">
                         <span className="truncate font-medium text-slate-700">{meta.label}</span>
-                        <span className="shrink-0 font-semibold tabular-nums text-slate-800">{fmtINR(e.amount)}</span>
+                        <span className="shrink-0 font-semibold tabular-nums text-slate-800">{fmtPKR(e.amount)}</span>
                       </div>
                       <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
                         <motion.div className="h-full rounded-full" style={{ backgroundColor: meta.color }}
@@ -174,8 +174,8 @@ export default function DashboardView({ refreshKey, onNavigate, onChanged }: Pro
               <BarChart data={data.monthly.map((m) => ({ ...m, label: m.month.slice(5) + "/" + m.month.slice(2, 4) }))} margin={{ top: 8, right: 8, left: -8, bottom: 0 }} barGap={5}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
                 <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={52} tickFormatter={(v: number) => fmtINRCompact(v).replace("₹", "")} />
-                <Tooltip content={<ChartTooltip formatter={(v) => fmtINR(v)} />} cursor={{ fill: "#f1f5f9" }} />
+                <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={52} tickFormatter={(v: number) => fmtPKRCompact(v).replace(/Rs\.?\s*/g, "")} />
+                <Tooltip content={<ChartTooltip formatter={(v) => fmtPKR(v)} />} cursor={{ fill: "#f1f5f9" }} />
                 <Bar dataKey="revenue" name="Revenue" fill="#10b981" radius={[5, 5, 0, 0]} maxBarSize={26} />
                 <Bar dataKey="expenses" name="Expenses" fill="#f43f5e" radius={[5, 5, 0, 0]} maxBarSize={26} />
               </BarChart>

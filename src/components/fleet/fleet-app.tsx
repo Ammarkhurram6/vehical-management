@@ -12,7 +12,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { fmtINR, fmtINRCompact } from "@/lib/format";
+import { fmtPKR, fmtPKRCompact } from "@/lib/format";
 import type { DashboardData } from "@/lib/fleet-types";
 import { api, cn } from "@/lib/fleet-utils";
 import DashboardView from "./dashboard-view";
@@ -54,7 +54,7 @@ export default function FleetApp() {
 
   useEffect(() => {
     loadDash();
-    setToday(new Date().toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" }));
+    setToday(new Date().toLocaleDateString("en-PK", { weekday: "short", day: "numeric", month: "short", year: "numeric" }));
   }, [loadDash, refreshKey]);
 
   const seedDemo = async () => {
@@ -146,7 +146,7 @@ export default function FleetApp() {
             Pending — Saqib
           </p>
           <p className="mt-1.5 text-xl font-bold tabular-nums text-amber-400">
-            {dash ? fmtINR(dash.totals.pendingDues) : "…"}
+            {dash ? fmtPKR(dash.totals.pendingDues) : "…"}
           </p>
           <p className="mt-0.5 text-[11px] text-slate-500">View hisab kitab →</p>
         </button>
@@ -246,7 +246,7 @@ export default function FleetApp() {
             <p>FleetFlow — commercial vehicle fleet & financial management</p>
             {dash && (
               <p className="tabular-nums">
-                {dash.totals.trips} trips • {dash.totals.distanceKm.toLocaleString("en-IN", { maximumFractionDigits: 0 })} km • Net {fmtINRCompact(dash.totals.netProfit)}
+                {dash.totals.trips} trips • {dash.totals.distanceKm.toLocaleString("en-PK", { maximumFractionDigits: 0 })} km • Net {fmtPKRCompact(dash.totals.netProfit)}
               </p>
             )}
           </div>

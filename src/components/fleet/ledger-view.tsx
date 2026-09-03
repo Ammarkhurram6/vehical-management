@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Wallet, HandCoins, FilePlus2, Loader2, Trash2, ArrowDownToLine, ArrowUpFromLine, BadgeIndianRupee } from "lucide-react";
+import { Wallet, HandCoins, FilePlus2, Loader2, Trash2, ArrowDownToLine, ArrowUpFromLine, Landmark } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { MANAGER_NAME, type LedgerEntryDTO } from "@/lib/fleet-types";
-import { fmtINR, fmtDate, todayKey } from "@/lib/format";
+import { fmtPKR, fmtDate, todayKey } from "@/lib/format";
 import { SectionCard, EmptyState, api, stagger } from "./ui-bits";
 import { cn } from "@/lib/utils";
 
@@ -54,8 +54,8 @@ export default function LedgerView({ refreshKey, onChanged }: { refreshKey: numb
       });
       toast.success(
         entryType === "PAYMENT"
-          ? `Payment of ${fmtINR(amt)} cleared from ${MANAGER_NAME}'s dues`
-          : `Credit of ${fmtINR(amt)} added to ${MANAGER_NAME}'s dues`
+          ? `Payment of ${fmtPKR(amt)} cleared from ${MANAGER_NAME}'s dues`
+          : `Credit of ${fmtPKR(amt)} added to ${MANAGER_NAME}'s dues`
       );
       setAmount(""); setDesc("");
       onChanged();
@@ -113,7 +113,7 @@ export default function LedgerView({ refreshKey, onChanged }: { refreshKey: numb
             <div className="text-right">
               <p className="text-[13px] font-medium text-slate-400">Pending Dues</p>
               <p className={cn("text-[38px] font-bold leading-none tracking-tight tabular-nums", (t?.balance ?? 0) > 0 ? "text-amber-400" : "text-emerald-400")}>
-                {fmtINR(t?.balance || 0)}
+                {fmtPKR(t?.balance || 0)}
               </p>
               <p className="mt-1.5 text-xs text-slate-500">
                 {t?.lastPaymentAt ? `Last payment ${fmtDate(t.lastPaymentAt)}` : "No payments recorded yet"}
@@ -123,7 +123,7 @@ export default function LedgerView({ refreshKey, onChanged }: { refreshKey: numb
 
           <div className="mt-6">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-medium text-slate-400">Cleared {t ? fmtINR(t.paid) : "—"} of {t ? fmtINR(t.credited) : "—"}</span>
+              <span className="font-medium text-slate-400">Cleared {t ? fmtPKR(t.paid) : "—"} of {t ? fmtPKR(t.credited) : "—"}</span>
               <span className="font-semibold text-emerald-400">{clearPct}% settled</span>
             </div>
             <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-white/10">
@@ -133,11 +133,11 @@ export default function LedgerView({ refreshKey, onChanged }: { refreshKey: numb
             <div className="mt-4 grid grid-cols-2 gap-3">
               <div className="rounded-xl bg-white/5 p-3 ring-1 ring-white/10">
                 <p className="flex items-center gap-1.5 text-[11px] font-medium text-slate-400"><ArrowUpFromLine className="h-3 w-3 text-amber-400" /> Total credited (dues)</p>
-                <p className="mt-1 text-base font-bold text-amber-400 tabular-nums">{fmtINR(t?.credited || 0)}</p>
+                <p className="mt-1 text-base font-bold text-amber-400 tabular-nums">{fmtPKR(t?.credited || 0)}</p>
               </div>
               <div className="rounded-xl bg-white/5 p-3 ring-1 ring-white/10">
                 <p className="flex items-center gap-1.5 text-[11px] font-medium text-slate-400"><ArrowDownToLine className="h-3 w-3 text-emerald-400" /> Total cleared (paid)</p>
-                <p className="mt-1 text-base font-bold text-emerald-400 tabular-nums">{fmtINR(t?.paid || 0)}</p>
+                <p className="mt-1 text-base font-bold text-emerald-400 tabular-nums">{fmtPKR(t?.paid || 0)}</p>
               </div>
             </div>
           </div>
@@ -161,7 +161,7 @@ export default function LedgerView({ refreshKey, onChanged }: { refreshKey: numb
                       ? tp === "PAYMENT" ? "bg-emerald-600 text-white shadow-sm" : "bg-amber-500 text-white shadow-sm"
                       : "text-slate-500 hover:text-slate-700"
                   )}>
-                  {tp === "PAYMENT" ? <HandCoins className="h-4 w-4" /> : <BadgeIndianRupee className="h-4 w-4" />}
+                  {tp === "PAYMENT" ? <HandCoins className="h-4 w-4" /> : <Landmark className="h-4 w-4" />}
                   {tp === "PAYMENT" ? "Payment" : "Add Due"}
                 </button>
               ))}
@@ -169,7 +169,7 @@ export default function LedgerView({ refreshKey, onChanged }: { refreshKey: numb
 
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-2 sm:col-span-1">
-                <Label className="text-xs font-medium text-slate-600">Amount (₹)</Label>
+                <Label className="text-xs font-medium text-slate-600">Amount (Rs)</Label>
                 <Input type="number" min="0" placeholder="e.g. 10000" value={amount} onChange={(e) => setAmount(e.target.value)} className="mt-1.5 h-10 text-sm" />
               </div>
               <div className="col-span-2 sm:col-span-1">
@@ -186,7 +186,7 @@ export default function LedgerView({ refreshKey, onChanged }: { refreshKey: numb
               {[5000, 10000, 25000].map((q) => (
                 <button key={q} onClick={() => setAmount(String(q))}
                   className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-500 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700">
-                  {fmtINR(q).replace(".00", "")}
+                  {fmtPKR(q)}
                 </button>
               ))}
             </div>
@@ -240,10 +240,10 @@ export default function LedgerView({ refreshKey, onChanged }: { refreshKey: numb
                     </TableCell>
                     <TableCell className={cn("whitespace-nowrap text-right text-[13px] font-bold tabular-nums",
                       e.type === "CREDIT" ? "text-amber-600" : "text-emerald-600")}>
-                      {e.type === "CREDIT" ? "+" : "−"}{fmtINR(e.amount)}
+                      {e.type === "CREDIT" ? "+" : "−"}{fmtPKR(e.amount)}
                     </TableCell>
                     <TableCell className="whitespace-nowrap text-right text-[13px] font-semibold tabular-nums text-slate-800">
-                      {fmtINR(e.after)}
+                      {fmtPKR(e.after)}
                     </TableCell>
                     <TableCell>
                       <AlertDialog>
