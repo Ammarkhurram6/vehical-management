@@ -151,3 +151,4 @@ public/sample-trips.csv       # Sample GPS export for testing uploads
 - **Net Profit** = Σ(Revenue) − Σ(Expenses). Categories keep revenue and expense ledgers separate.
 - **Pending Dues** = Σ(Credits) − Σ(Payments) in the manager ledger; the demo seed tracks Rs 130,000 as opening balance per the operator's books.
 - All times render exactly as the tracking system logged them (wall-clock preserved, timezone-safe).
+"# vehical-management" 
