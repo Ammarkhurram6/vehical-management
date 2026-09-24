@@ -83,3 +83,20 @@ Stage Summary:
 - Hydration error root-caused to stale HMR overlay (not a code bug); dev server restarted clean, verified zero errors in user's timezone
 - Quick Calculator now shows live total-entries counter (cumulative since AC), all counting semantics verified in browser
 - Demo data reseeded; app fully working at localhost:3000
+
+---
+Task ID: 4
+Agent: Super Z (main agent)
+Task: Clear calculator after "Use as Amount" + investigate reported Chinese text + unknown error (screenshots did not sync)
+
+Work Log:
+- User screenshots (pasted_image_1790257698717/7707548.png) never appeared in /home/z/my-project/upload — only the 2 old hydration images present; could not view the reported error
+- Scanned app for Chinese: rg CJK ranges in src/ + README = zero hits; runtime DOM TreeWalker scan of rendered page = zero CJK text; html lang="en"; conclusion: Chinese came from browser auto-translate or platform chat UI, not app code
+- Preventive fix: layout.tsx <html lang="en" translate="no"> to block browser auto-translation of the app UI
+- calculator.tsx: useAsAmount now calls reset() after onUse — pushes value into the amount field then clears display/acc/op/expr/entries (AC-style; memory + history tape intentionally kept)
+- Verified in browser: 777+3=780 (2 entries) -> click Use as Amount -> chip "0 entries", display "0", amount field "780", toast "Amount set — Rs 780", history rows kept; zero page errors; lint clean; dev.log clean
+- Screenshot: download/calculator-clear-on-use.png
+
+Stage Summary:
+- Use as Amount now clears the calculator (fresh start for next sum), value lands in the amount field
+- App confirmed 100% English + auto-translate blocked; user's reported error still unidentified — need re-upload or description of the screenshots

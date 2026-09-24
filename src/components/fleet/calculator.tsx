@@ -202,6 +202,7 @@ export default function QuickCalculator({ onUse, className }: {
   const useAsAmount = () => {
     if (error) { toast.error(error); return; }
     onUse?.(parseFloat(cur().toPrecision(10)));
+    reset(); // push done — start a fresh calculation (memory & history kept)
   };
 
   const BTN = "flex h-11 items-center justify-center rounded-xl text-[15px] font-semibold transition-all select-none active:scale-95";
