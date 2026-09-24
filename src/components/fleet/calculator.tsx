@@ -5,7 +5,7 @@
    tape, keyboard input, and a one-tap "Use as Amount" push into a form. */
 
 import { useState } from "react";
-import { Calculator as CalculatorIcon, Delete, MousePointerClick, X } from "lucide-react";
+import { Calculator as CalculatorIcon, Delete, ListPlus, MousePointerClick, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { fmtPKR } from "@/lib/format";
@@ -65,6 +65,11 @@ export default function QuickCalculator({ onUse, className }: {
   const [memory, setMemory] = useState(0);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [error, setError] = useState<string | null>(null);
+  /* entries counter — how many values the user has fed into the calculation
+     (2 + 2 + 2 = 3 entries). Cumulative since last AC. */
+  const [entries, setEntries] = useState(0);
+  const [pristine, setPristine] = useState(true); // no value typed since AC
+  const [derived, setDerived] = useState(false);  // display holds a computed value (result/acc), not a user-entered one
 
   const cur = () => {
     const v = parseFloat(display);
@@ -73,10 +78,13 @@ export default function QuickCalculator({ onUse, className }: {
 
   const reset = () => {
     setDisplay("0"); setAcc(null); setOp(null); setWait(false); setExpr(""); setError(null);
+    setEntries(0); setPristine(true); setDerived(false);
   };
 
   const inputDigit = (d: string) => {
     if (error) return;
+    setPristine(false);
+    setDerived(false);
     if (wait) {
       setDisplay(d);
       setWait(false);
@@ -92,17 +100,20 @@ export default function QuickCalculator({ onUse, className }: {
 
   const inputDot = () => {
     if (error) return;
+    setPristine(false);
+    setDerived(false);
     if (wait) { setDisplay("0."); setWait(false); return; }
     setDisplay((prev) => (prev.includes(".") ? prev : prev + "."));
   };
 
   const backspace = () => {
     if (error || wait) return;
-    setDisplay((prev) => {
-      if (prev.length <= 1) return "0";
-      if (prev.length === 2 && prev.startsWith("-")) return "0";
-      return prev.slice(0, -1);
-    });
+    const next =
+      display.length <= 1 || (display.length === 2 && display.startsWith("-"))
+        ? "0"
+        : display.slice(0, -1);
+    if (next === "0") setPristine(true); // back to untouched state — nothing entered
+    setDisplay(next);
   };
 
   const toggleSign = () => {
@@ -122,6 +133,7 @@ export default function QuickCalculator({ onUse, className }: {
     if (!isFinite(r)) return;
     setDisplay(String(parseFloat(r.toPrecision(12))));
     setWait(true);
+    setDerived(false); // still the user's entered value, just transformed
   };
 
   const chooseOp = (next: Op) => {
@@ -131,13 +143,16 @@ export default function QuickCalculator({ onUse, className }: {
     if (acc !== null && op !== null) {
       base = wait ? acc : fold(acc, v, op); // operator swap vs. chained calculation
       if (isNaN(base)) { setError("Can't divide by 0"); return; }
+      if (!wait && !derived) setEntries((n) => n + 1); // operand committed into the chain
     } else {
       base = v;
+      if (!pristine && !derived) setEntries((n) => n + 1); // first operand committed
     }
     setAcc(base);
     setDisplay(String(base));
     setOp(next);
     setWait(true);
+    setDerived(true); // display now holds the chain's standing value
     setExpr(`${group(String(base))} ${next}`);
   };
 
@@ -151,13 +166,15 @@ export default function QuickCalculator({ onUse, className }: {
     setExpr(`${line} =`);
     setDisplay(String(r));
     setAcc(null); setOp(null); setWait(true);
+    setDerived(true); // result is a computed value
+    if (!wait) setEntries((n) => n + 1); // final operand committed
   };
 
   /* memory keys */
   const guarded = (fn: () => void) => () => { if (!error) fn(); };
   const memAdd = guarded(() => setMemory((m) => m + cur()));
   const memSub = guarded(() => setMemory((m) => m - cur()));
-  const memRecall = guarded(() => { setDisplay(String(memory)); setWait(true); });
+  const memRecall = guarded(() => { setDisplay(String(memory)); setWait(true); setPristine(false); setDerived(false); });
   const memClear = guarded(() => setMemory(0));
 
   /* keyboard support (only while focus is inside the calculator) */
@@ -218,7 +235,19 @@ export default function QuickCalculator({ onUse, className }: {
       <div className="space-y-3 p-5">
         {/* display */}
         <div className="rounded-xl bg-slate-900 px-4 py-3 text-right shadow-inner">
-          <p className="h-4 truncate text-[11px] font-medium text-slate-400">{expr || "\u00A0"}</p>
+          <div className="flex h-4 items-center justify-between gap-2">
+            <span
+              title={`Total values entered since last AC — e.g. 2 + 2 + 2 = 3 entries`}
+              className={cn(
+                "flex shrink-0 items-center gap-1 rounded-full px-1.5 py-px text-[10px] font-bold leading-none tabular-nums",
+                entries > 0 ? "bg-emerald-500/20 text-emerald-300" : "text-slate-500"
+              )}
+            >
+              <ListPlus className="h-3 w-3" />
+              {entries} {entries === 1 ? "entry" : "entries"}
+            </span>
+            <p className="truncate text-[11px] font-medium text-slate-400">{expr || "\u00A0"}</p>
+          </div>
           <p className={cn(
             "mt-0.5 truncate text-[26px] font-bold leading-tight tracking-tight text-white tabular-nums",
             error && "text-base text-rose-400"
@@ -233,7 +262,7 @@ export default function QuickCalculator({ onUse, className }: {
             {history.map((h, i) => (
               <button
                 key={i}
-                onClick={() => { if (error) return; setDisplay(String(h.value)); setWait(true); setExpr(`${h.expr} =`); }}
+                onClick={() => { if (error) return; setDisplay(String(h.value)); setWait(true); setPristine(false); setDerived(false); setExpr(`${h.expr} =`); }}
                 title="Click to reuse this result"
                 className="flex w-full items-center justify-between gap-3 rounded-lg px-2 py-1 text-left transition-colors hover:bg-white"
               >

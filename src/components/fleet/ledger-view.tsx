@@ -26,7 +26,7 @@ export default function LedgerView({ refreshKey, onChanged }: { refreshKey: numb
 
   const [entryType, setEntryType] = useState<"PAYMENT" | "CREDIT">("PAYMENT");
   const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(todayKey());
+  const [date, setDate] = useState(""); // set after mount — server (UTC) and browser (PKT) can disagree on "today"
   const [desc, setDesc] = useState("");
 
   const load = useCallback(async () => {
@@ -41,6 +41,8 @@ export default function LedgerView({ refreshKey, onChanged }: { refreshKey: numb
   }, []);
 
   useEffect(() => { load(); }, [load, refreshKey]);
+
+  useEffect(() => { setDate(todayKey()); }, []);
 
   const submit = async () => {
     const amt = parseFloat(amount);

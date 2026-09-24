@@ -39,7 +39,7 @@ interface SummaryResponse {
 }
 
 export default function TripsView({ refreshKey, onChanged }: { refreshKey: number; onChanged: () => void }) {
-  const [month, setMonth] = useState(currentMonthKey());
+  const [month, setMonth] = useState(""); // set after mount — avoids SSR (UTC) vs client (PKT) month-boundary mismatch
   const [vehicle, setVehicle] = useState("all");
   const [granularity, setGranularity] = useState("daily");
   const [data, setData] = useState<TripsResponse | null>(null);
@@ -51,7 +51,7 @@ export default function TripsView({ refreshKey, onChanged }: { refreshKey: numbe
   const fileRef = useRef<HTMLInputElement>(null);
 
   const query = useMemo(() => {
-    const p = new URLSearchParams({ month, vehicle });
+    const p = new URLSearchParams({ month: month || currentMonthKey(), vehicle });
     return p.toString();
   }, [month, vehicle]);
 
@@ -72,6 +72,8 @@ export default function TripsView({ refreshKey, onChanged }: { refreshKey: numbe
   }, [query, granularity]);
 
   useEffect(() => { load(); }, [load, refreshKey]);
+
+  useEffect(() => { setMonth(currentMonthKey()); }, []);
 
   const uploadFile = async (file: File) => {
     setUploading(true);

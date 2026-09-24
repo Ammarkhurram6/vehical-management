@@ -30,7 +30,7 @@ const CATEGORY_ICONS: Partial<Record<FinanceCategory, React.ElementType>> = {
 const CATEGORY_KEYS = Object.keys(FINANCE_CATEGORIES) as FinanceCategory[];
 
 export default function FinanceView({ refreshKey, onChanged }: { refreshKey: number; onChanged: () => void }) {
-  const [month, setMonth] = useState(currentMonthKey());
+  const [month, setMonth] = useState(""); // set after mount — avoids SSR (UTC) vs client (PKT) month-boundary mismatch
   const [typeFilter, setTypeFilter] = useState("all");
   const [data, setData] = useState<FinanceResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,12 +40,12 @@ export default function FinanceView({ refreshKey, onChanged }: { refreshKey: num
   const [fType, setFType] = useState<FinanceType>("EXPENSE");
   const [fCategory, setFCategory] = useState<FinanceCategory>("DIESEL");
   const [fAmount, setFAmount] = useState("");
-  const [fDate, setFDate] = useState(currentMonthKey() + "-01");
+  const [fDate, setFDate] = useState("");
   const [fVehicle, setFVehicle] = useState("");
   const [fDesc, setFDesc] = useState("");
 
   const query = useMemo(() => {
-    const p = new URLSearchParams({ month });
+    const p = new URLSearchParams({ month: month || currentMonthKey() });
     if (typeFilter !== "all") p.set("type", typeFilter);
     return p.toString();
   }, [month, typeFilter]);
@@ -62,6 +62,8 @@ export default function FinanceView({ refreshKey, onChanged }: { refreshKey: num
   }, [query]);
 
   useEffect(() => { load(); }, [load, refreshKey]);
+
+  useEffect(() => { setMonth(currentMonthKey()); setFDate(currentMonthKey() + "-01"); }, []);
 
   const switchType = (t: FinanceType) => {
     setFType(t);

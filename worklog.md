@@ -45,3 +45,41 @@ Stage Summary:
 - Currency is now PKR (Rs) across dashboard, trips, finance, ledger, charts, sidebar, footer
 - Full manual calculator live in Profit Calculator view with all operators, memory, history, keyboard input, one-tap "Use as Amount"
 - Lint clean, dev.log clean, HTTP 200, browser-verified end-to-end
+
+---
+Task ID: 3
+Agent: Super Z (main agent)
+Task: Investigate and fix hydration-mismatch issue reported via screenshot (Next.js dev overlay "1 Issue", radix aria-controls diff)
+
+Work Log:
+- Reproduced on clean load: fresh page + all 4 views = zero errors; the reported overlay came from a stale build (overlay itself said "Next.js 16.1.3 (stale)") — user's tab held pre-edit server HTML that clashed with hot-reloaded client code; refresh clears it
+- Found REAL latent hydration bug during investigation: todayKey()/currentMonthKey() used as useState initializers run in SSR (server = UTC) and hydration (user = Asia/Karachi UTC+5); between 19:00-23:59 UTC daily (midnight-5AM PKT) the two disagree -> guaranteed hydration mismatch on date/month inputs every evening
+- Fixed in ledger-view (date: useState("") + mount effect setDate(todayKey())), finance-view (month + fDate -> "" + mount effect; query falls back month || currentMonthKey()), trips-view (same pattern) — SSR and client now render identical initial constants; real local values set post-mount
+- Query fallback ensures first fetch already uses current month (same query string after effect -> no double fetch)
+- Verified: lint clean; fresh browser session walk of Dashboard/Trip Logs/Profit Calculator/Manager Ledger = zero console errors, zero page errors; ledger date input fills 2026-09-04, finance/trips month = 2026-09, finance form date = 2026-09-01
+
+Stage Summary:
+- Hydration issue resolved: stale-build artifact explained + recurring PKT-vs-UTC evening mismatch eliminated at the root
+- User should hard-refresh their open tab to drop the stale overlay
+
+---
+Task ID: 3
+Agent: Super Z (main agent)
+Task: Fix reported hydration error (aria-controls radix id mismatch) + add total entries counter to Quick Calculator
+
+Work Log:
+- Read user's screenshot: Next.js dev overlay showed 1 issue — hydration attribute diff on Radix dialog trigger Button (server radix-_R_6cindlb_ vs client radix-_R_1j2ndlb_), badge read "Next.js 16.1.3 (stale)"
+- Inspected dev.log (no server-side errors), searched app for classic causes: no dynamic(ssr:false), no localStorage init, no render-time new Date(); demo-data.ts is server-only
+- Decoded useId paths: deep suffix identical (ndlb), only root-level path differs -> signature of stale server HTML vs fresh client tree (HMR state), not a render bug
+- Reproduced cleanly: playwright script (scripts/hydration-check.js) in Asia/Karachi TZ walked all 4 views + opened/closed Reset AlertDialog -> ZERO hydration/console errors; confirmed code itself is hydration-safe
+- Fix: killed stale dev server (bun run dev / next-server), restarted fresh; verified fresh page load with agent-browser -> no errors; user should hard-refresh their tab
+- Added entries counter to calculator.tsx: entries/pristine/derived state; commit-model counting (value counted when operator/equals commits it into the chain); derived flag prevents counting computed results/acc copies/repeat-operand equals; pristine flag prevents counting untouched default 0; backspace-to-zero restores pristine; cumulative since AC
+- UI: green chip on dark display panel top-left: ListPlus icon + "N entry/entries" (emerald when >0, dim slate at 0), tooltip explains rule (2+2+2 = 3 entries)
+- Edge cases handled: operator swap (wait) no count, continuation after = (result carried) no count, MR/tape-recall count as entries when committed, % transform keeps entry status, double = no double count
+- eslint.config.mjs: added "scripts/**" to ignores (hydration-check.js uses require)
+- Browser-verified via keyboard input: 2+2+2= -> 3 entries; Esc AC -> 0 entries; 4500+3200= -> 2 entries; = again -> still 2 (no double); continue 5+1= -> 4 entries cumulative, result 6, Use as Amount — Rs 6; screenshot saved download/calculator-entries-counter.png; lint clean; dev.log clean
+
+Stage Summary:
+- Hydration error root-caused to stale HMR overlay (not a code bug); dev server restarted clean, verified zero errors in user's timezone
+- Quick Calculator now shows live total-entries counter (cumulative since AC), all counting semantics verified in browser
+- Demo data reseeded; app fully working at localhost:3000
